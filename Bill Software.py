@@ -1,3 +1,6 @@
+#!python3
+
+import sqlite3
 from tkinter import *
 from tkinter import messagebox
 from datetime import date
@@ -6,8 +9,72 @@ from reportlab.pdfgen import canvas
 import io
 from reportlab.lib.pagesizes import letter
 import backend
+import os
+
 
 backend.connectsqlite()
+
+def updatestock():
+    def update():
+        conn = sqlite3.connect("BillData.db")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM inventory WHERE product = ?", (entryStock.get()))
+        data = cur.fetchall()
+        cur.execute("UPDATE inventory SET Stock = ? WHERE `product` = ?", (data[2]+entryStock.get(),product.get))
+        conn.commit()
+        conn.close()
+
+    def delete():
+        conn = sqlite3.connect("BillData.db")
+        cur = conn.cursor()
+        cur.execute("DELETE FROM inventory WHERE `product` = ?", (product.get(),))
+        conn.commit()
+        conn.close()
+
+    updatewindow = Tk()
+    updatewindow.wm_title("update stock")
+    product = StringVar()
+    choices = [data[0] for data in backend.viewallinv()]
+    product.set(choices[0])
+    optionProduct = OptionMenu(updatewindow, product, *choices)
+    optionProduct.grid(row = 0, column = 0, columnspan = 2 , sticky = W)
+
+    stock = IntVar()
+    entryStock = Entry(updatewindow, textvariable = stock)
+    entryStock.grid(row = 1, column = 0)
+    buttonupdate = Button(updatewindow, text = "update", width = 15, bg = 'light cyan', command = update)
+    buttonDelete = Button(updatewindow, text = "Delete", width = 15, bg = 'tomato', command = delete)
+    buttonupdate.grid(row = 2, column = 0)
+    buttonDelete.grid(row = 2, column = 1)
+    updatewindow.mainloop()
+
+def editinventory():
+    def updateinventory():
+        conn = sqlite3.connect("BillData.db")
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT INTO inventory VALUES (?, ?, ?)", (entryProduct.get(), entryPrice.get(), 0))
+            conn.commit()
+            conn.close()
+            return True
+        except sqlite3.IntegrityError:
+            conn.close()
+            return False
+    editwindow = Tk()
+    editwindow.wm_title("Edit Window")
+    labelInventory = Label(editwindow, text = "Name")
+    labelPrice = Label(editwindow, text = "Price")
+    labelInventory.grid(row = 0, column = 0)
+    labelPrice.grid(row = 1, column = 0)
+    product = StringVar()
+    price = IntVar()
+    entryProduct = Entry(editwindow, textvariable = product)
+    entryPrice = Entry(editwindow, textvariable = price)
+    entryProduct.grid(row = 0 , column = 1)
+    entryPrice.grid(row = 1, column = 1)
+    buttonSaveedit = Button(editwindow, text = "Save", width = 15, bg = 'light cyan', command = updateinventory)
+    buttonSaveedit.grid(row = 2, column = 0)
+    editwindow.mainloop()
 
 def viewrecords():
     reset()
@@ -43,7 +110,12 @@ def deleterecord():
     if messagebox.askyesno("Delete Record", "Do you Want to delete {}".format(selectedData)):
         backend.delete(selectedData.split('    ', 1)[0])
         reset()
-        listboxMain.insert(END, "Data Deleted Successfully!")
+        try:
+            path = os.getcwd() + "/Bill Reciepts/"
+            os.remove("{}/{}.pdf".format(path,selectedData.split('    ', 1)[0].replace('/','-')))
+            listboxMain.insert(END, "Data Deleted Successfully!")
+        except:
+            pass
         return
     reset()
     listboxMain.insert(END, " Data Not Deleted")
@@ -52,8 +124,9 @@ def saverecord():
     if name.get() == '' or address.get() == '' or quantity.get == 0:
         messagebox.askokcancel("Warning", "Please Check name/ address/ qauntity")
         return
-    if backend.insert(billNo.get(), dateToday.get(), name.get(), address.get(), product.get(), quantity.get(), backend.calculateprice( 
-    choices[product.get()], quantity.get())) :
+    if backend.insert(billNo.get(), dateToday.get(), name.get(), address.get(), product.get(), quantity.get(), backend.calculateprice(product.get()
+    , quantity.get())) :
+        generatebill(billNo.get())
         reset()
         billNo.set(backend.generatebillno())
         listboxMain.insert(END, "Data Added Successfully")
@@ -74,8 +147,8 @@ def reset():
     dateToday.set(date.today().strftime("%d/%m/%Y"))
     listboxMain.delete(0, END)
 
-def generatebill():
-    Data = backend.search(selectedData.split('    ',1)[0])
+def generatebill(billNo):
+    Data = backend.search(billNo)
     packet = io.BytesIO()
     can = canvas.Canvas(packet, pagesize=letter)
     can.drawString(100, 550, str(Data[0][2]))
@@ -97,9 +170,11 @@ def generatebill():
     page.mergePage(page2)
     output.addPage(page)
     try:
-        outputStream = open("Bill Reciepts\{}.pdf".format(Data[0][0]).replace('/','-'), "wb" )
-    except FileNotFoundError:
-        outputStream = open("{}.pdf".format(Data[0][0]).replace('/','-'), "wb" )
+        os.mkdir("{}/{}".format(os.getcwd(), "Bill Reciepts"))
+    except FileExistsError:
+        pass
+
+    outputStream = open("Bill Reciepts\{}.pdf".format(Data[0][0]).replace('/','-'), "wb" )
     output.write(outputStream)
     outputStream.close()
     reset()
@@ -143,8 +218,13 @@ entryDate.grid(row = 0, column = 5)
 entryBillno.grid(row = 1, column = 5)
 
 product = StringVar()
-choices = {'Chaffcutter (Sahyadri type-A1)': 1, 'Chaffcutter (Sahyadri type-A2)': 2}
-product.set('Chaffcutter (Sahyadri type-A1)')
+try:
+    choices = [data[0] for data in backend.viewallinv()]
+    product.set(choices[0])
+except IndexError:
+    choices = ["Please Add Product Before Proceeding!"]
+    pass
+
 optionProduct = OptionMenu(window, product, *choices)
 optionProduct.grid(row = 2, column = 1, columnspan = 2, sticky = W)
 
@@ -170,7 +250,8 @@ buttonDelete = Button(window, text = "Delete", width = 15, bg = 'coral', command
 buttonSearch = Button(window, text = "Search Entry", width = 15, bg = 'misty rose', command = searchrecords)
 buttonClose = Button(window, text = "Close", width = 15, bg = 'tomato2', command = window.destroy)
 buttonReset = Button(window, text = "Reset", width = 15, bg = 'bisque', command = reset)
-buttonPdf = Button(window, text = "Create Bill", width = 15, bg = 'lemon chiffon', command = generatebill)
+buttonEdit = Button(window, text = "Edit", width = 15, bg = 'lemon chiffon', command = editinventory)
+buttonStock = Button(window, text = "update Stock", width = 15, command = updatestock)
 
 buttonViewall.grid(row = 11, column = 0)
 buttonSearch.grid(row = 11, column = 1)
@@ -179,7 +260,8 @@ buttonDelete.grid(row = 11, column = 3)
 buttonSave.grid(row = 11, column = 4)
 buttonClose.grid(row = 11, column = 5)
 buttonReset.grid(row= 10, column  = 5)
-buttonPdf.grid(row = 4, column = 5)
+buttonEdit.grid(row = 4, column = 5)
+buttonStock.grid(row = 5, column  = 5)
 
 
 window.mainloop()

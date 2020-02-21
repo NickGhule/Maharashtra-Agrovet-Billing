@@ -1,11 +1,14 @@
+#!python3
 import csv
 import sqlite3
 from datetime import *
+
 
 def connectsqlite():
     conn = sqlite3.connect("BillData.db")
     cur = conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS bills ( `Bill no` TEXT PRIMARY KEY, `Date` TEXT, `Name` TEXT, `Address` TEXT, Product TEXT, Qauntity INTEGER , Price INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS inventory ( `product` TEXT PRIMARY KEY, Price INTEGER , Stock INTEGER)")
     conn.commit()
     conn.close()
 
@@ -26,6 +29,14 @@ def viewall():
     conn = sqlite3.connect("BillData.db")
     cur = conn.cursor()
     cur.execute("SELECT * FROM bills")
+    data = cur.fetchall()
+    conn.close()
+    return data
+
+def viewallinv():
+    conn = sqlite3.connect("BillData.db")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM inventory")
     data = cur.fetchall()
     conn.close()
     return data
@@ -58,11 +69,11 @@ def generatebillno():
     return billno
 
 def calculateprice(product, qauntity):
-    if product == 1:
-        price = 16500*qauntity
-    elif product == 2:
-        price = 17500*qauntity
-    return price
+    conn = sqlite3.connect("BillData.db")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM inventory WHERE `product` = ?", (product,))
+    data = cur.fetchall()
+    return data[0][1]*qauntity
 
 def exportcsv():
     data = viewall()
