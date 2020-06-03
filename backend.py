@@ -6,7 +6,7 @@ from datetime import *
 
 def connectsqlite():
     conn = sqlite3.connect("BillData.db")
-    cur = conn.cursor()
+    cur  = conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS bills ( `Bill no` TEXT PRIMARY KEY, `Date` TEXT, `Name` TEXT, `Address` TEXT, Product TEXT, Qauntity INTEGER , Price INTEGER)")
     cur.execute("CREATE TABLE IF NOT EXISTS inventory ( `product` TEXT PRIMARY KEY, Price INTEGER , Stock INTEGER)")
     conn.commit()
@@ -27,7 +27,7 @@ def insert(billNo, date, name, address, product, Qauntity, price):
 
 def viewall():
     conn = sqlite3.connect("BillData.db")
-    cur = conn.cursor()
+    cur  = conn.cursor()
     cur.execute("SELECT * FROM bills")
     data = cur.fetchall()
     conn.close()
@@ -35,7 +35,7 @@ def viewall():
 
 def viewallinv():
     conn = sqlite3.connect("BillData.db")
-    cur = conn.cursor()
+    cur  = conn.cursor()
     cur.execute("SELECT * FROM inventory")
     data = cur.fetchall()
     conn.close()
@@ -43,7 +43,7 @@ def viewallinv():
 
 def search(billNo = "", name = "", address = ""):
     conn = sqlite3.connect("BillData.db")
-    cur = conn.cursor()
+    cur  = conn.cursor()
     cur.execute("SELECT * FROM bills WHERE `Bill no` = ? OR `Name` = ? OR `Address` = ?", (billNo, name, address))
     data = cur.fetchall()
     conn.close()
@@ -51,14 +51,14 @@ def search(billNo = "", name = "", address = ""):
 
 def delete(BillNo):
     conn = sqlite3.connect("BillData.db")
-    cur = conn.cursor()
+    cur  = conn.cursor()
     cur.execute("DELETE FROM bills WHERE `Bill no` = ?", (BillNo,))
     conn.commit()
     conn.close()
 
 def generatebillno():
     conn = sqlite3.connect("BillData.db")
-    cur = conn.cursor()
+    cur  = conn.cursor()
     cur.execute("SELECT * FROM bills")
     try:
         data = cur.fetchall()[-1]
@@ -70,7 +70,7 @@ def generatebillno():
 
 def calculateprice(product, qauntity):
     conn = sqlite3.connect("BillData.db")
-    cur = conn.cursor()
+    cur  = conn.cursor()
     cur.execute("SELECT * FROM inventory WHERE `product` = ?", (product,))
     data = cur.fetchall()
     return data[0][1]*qauntity
