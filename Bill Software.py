@@ -49,9 +49,6 @@ def updatestock():
     updatewindow.mainloop()
 
 def editinventory():
-    
-    
-    
     def updateGUI():
         def updateinventory():
             conn = sqlite3.connect("BillData.db")
@@ -70,6 +67,7 @@ def editinventory():
                 return False
         
         windowUpdateGUI = Tk()
+        editwindow.destroy()
         labelInventory = Label(windowUpdateGUI, text = "Name")
         labelPrice     = Label(windowUpdateGUI, text = "Price")
         labelInventory.grid(row = 0, column = 0)
@@ -94,6 +92,7 @@ def editinventory():
             windowDeleteGUI.destroy()
 
         windowDeleteGUI = Tk()
+        editwindow.destroy()
         product = StringVar()
         try:
             choices = [data[0] for data in backend.viewallinv()]
@@ -104,7 +103,7 @@ def editinventory():
         
         optionProduct = OptionMenu(windowDeleteGUI, product, *choices)
         optionProduct.config(width = 20)
-        optionProduct.grid(row = 0, column = 1, columnspan = 2, sticky = W)
+        optionProduct.grid(row = 0, column = 0, columnspan = 2, sticky = W)
         buttonwindowDeleteGUIdelete = Button(windowDeleteGUI, text = 'Delete', width = 15, bg = 'orange', command = deleteinventory)
         buttonwindowDeleteGUIdelete.grid(row=1,column=0)
         windowDeleteGUI.mainloop()
@@ -157,7 +156,7 @@ def deleterecord():
             os.remove("{}/{}.pdf".format(path,selectedData.split('    ', 1)[0].replace('/','-')))
             listboxMain.insert(END, "Data Deleted Successfully!")
         except:
-            pass
+            listboxMain.insert(END, "Data Deleted Successfully! \n No Bill found!")
         return
     reset()
     listboxMain.insert(END, " Data Not Deleted")
@@ -233,12 +232,12 @@ labelDate     = Label(window, text = "Date :")
 labelQuantity = Label(window, text = "Quantity :")
 labelBillno   = Label(window, text = "Bill No. :")
 
-labelName.grid(row = 0, column = 0)
-labelAddress.grid(row = 1, column = 0)
-labelProduct.grid(row = 2, column = 0)
-labelQuantity.grid(row = 3, column = 0)
-labelDate.grid(row = 0, column = 4)
-labelBillno.grid(row = 1, column = 4)
+labelName.grid(     row = 0, column = 0)
+labelAddress.grid(  row = 1, column = 0)
+labelProduct.grid(  row = 2, column = 0)
+labelQuantity.grid( row = 3, column = 0)
+labelDate.grid(     row = 0, column = 4)
+labelBillno.grid(   row = 1, column = 4)
 
 name      = StringVar()
 address   = StringVar()
@@ -253,11 +252,11 @@ entryQuantity = Entry(window, textvariable = quantity)
 entryDate     = Entry(window, textvariable = dateToday)
 entryBillno   = Entry(window, textvariable = billNo)
 
-entryName.grid(row = 0, column = 1, columnspan = 3)
-entryAddress.grid(row = 1, column = 1,columnspan = 3)
-entryQuantity.grid(row = 3, column =1)
-entryDate.grid(row = 0, column = 5)
-entryBillno.grid(row = 1, column = 5)
+entryName.grid(     row = 0, column = 1, columnspan = 3)
+entryAddress.grid(  row = 1, column = 1, columnspan = 3)
+entryQuantity.grid( row = 3, column = 1)
+entryDate.grid(     row = 0, column = 5)
+entryBillno.grid(   row = 1, column = 5)
 
 product = StringVar()
 try:
@@ -269,7 +268,7 @@ except IndexError:
 
 optionProduct = OptionMenu(window, product, *choices)
 optionProduct.config(width = 45)
-optionProduct.grid(row = 2, column = 1, columnspan = 2, sticky = W)
+optionProduct.grid(row = 2, column = 1, columnspan = 3, sticky = W)
 
 listboxMain = Listbox(window, height = 7, width = 60)
 listboxMain.bind('<<ListboxSelect>>', getselected)
@@ -278,7 +277,7 @@ listboxMain.grid(row = 4, column = 1, columnspan = 3)
 yscrollListbox = Scrollbar(window)
 xscrollListbox = Scrollbar(window, orient = HORIZONTAL)
 
-yscrollListbox.grid(row = 4, column = 4, rowspan = 6)
+yscrollListbox.grid(row = 4,  column = 4, rowspan = 6)
 xscrollListbox.grid(row = 10, column = 1, columnspan = 3)
 
 listboxMain.configure(   yscrollcommand = yscrollListbox.set)
@@ -286,25 +285,25 @@ yscrollListbox.configure(command = listboxMain.yview())
 listboxMain.configure(   xscrollcommand = xscrollListbox.set)
 xscrollListbox.configure(command = listboxMain.xview())
 
-buttonSave    = Button(window, text = "Save",          width = 15, bg = 'light cyan', command = saverecord)
-buttonViewall = Button(window, text = "View All",      width = 15, bg = 'deep sky blue', command = viewrecords)
-buttonPrint   = Button(window, text = "To Excel",      width = 15, bg = 'medium spring green', command = exportrecord)
-buttonDelete  = Button(window, text = "Delete",        width = 15, bg = 'coral', command = deleterecord)
-buttonSearch  = Button(window, text = "Search Entry",  width = 15, bg = 'misty rose', command = searchrecords)
-buttonClose   = Button(window, text = "Close",         width = 15, bg = 'tomato2', command = window.destroy)
-buttonReset   = Button(window, text = "Reset",         width = 15, bg = 'bisque', command = reset)
-buttonEdit    = Button(window, text = "Edit",          width = 15, bg = 'lemon chiffon', command = editinventory)
-buttonStock   = Button(window, text = "update Stock",  width = 15, command = updatestock)
+buttonSave    = Button(window, text = "Save",          width = 15, bg = 'light cyan',           command = saverecord)
+buttonViewall = Button(window, text = "View All",      width = 15, bg = 'deep sky blue',        command = viewrecords)
+buttonPrint   = Button(window, text = "To Excel",      width = 15, bg = 'medium spring green',  command = exportrecord)
+buttonDelete  = Button(window, text = "Delete",        width = 15, bg = 'coral',                command = deleterecord)
+buttonSearch  = Button(window, text = "Search Entry",  width = 15, bg = 'misty rose',           command = searchrecords)
+buttonClose   = Button(window, text = "Close",         width = 15, bg = 'tomato2',              command = window.destroy)
+buttonReset   = Button(window, text = "Reset",         width = 15, bg = 'bisque',               command = reset)
+buttonEdit    = Button(window, text = "Edit",          width = 15, bg = 'lemon chiffon',        command = editinventory)
+#buttonStock   = Button(window, text = "update Stock",  width = 15,                              command = updatestock)
 
-buttonViewall.grid(row = 11, column = 0)
-buttonSearch.grid(row = 11, column = 1)
-buttonPrint.grid(row = 11, column = 2)
-buttonDelete.grid(row = 11, column = 3)
-buttonSave.grid(row = 11, column = 4)
-buttonClose.grid(row = 11, column = 5)
-buttonReset.grid(row = 10, column  = 5)
-buttonEdit.grid(row = 4, column = 5)
-buttonStock.grid(row = 5, column  = 5)
+buttonViewall.grid( row = 11, column = 0)
+buttonSearch.grid(  row = 11, column = 1)
+buttonPrint.grid(   row = 11, column = 2)
+buttonDelete.grid(  row = 11, column = 3)
+buttonSave.grid(    row = 11, column = 4)
+buttonClose.grid(   row = 11, column = 5)
+buttonReset.grid(   row = 10, column = 5)
+buttonEdit.grid(    row = 4,  column = 5)
+buttonStock.grid(   row = 5,  column = 5)
 
 
 window.mainloop()
